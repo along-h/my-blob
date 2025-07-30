@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="generator" content="VuePress 2.0.0-rc.0" />
+    <meta name="theme" content="VuePress Theme Hope 2.0.0-rc.11" />
+    <style>
+      html {
+        background: var(--bg-color, #fff);
+      }
+
+      html[data-theme="dark"] {
+        background: var(--bg-color, #1d1e1f);
+      }
+
+      body {
+        background: var(--bg-color);
+      }
+    </style>
+    <script>
+      const userMode = localStorage.getItem("vuepress-theme-hope-scheme");
+      const systemDarkMode =
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+      if (userMode === "dark" || (userMode !== "light" && systemDarkMode)) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    </script>
+    <meta property="og:url" content="https://mister-hope.github.io/my-blob/posts/react/sourceCode/dom.html"><meta property="og:site_name" content="ALong"><meta property="og:title" content="🎯虚拟DOM和ReactDOM.render源码"><meta property="og:description" content="React.dom相关源码"><meta property="og:type" content="article"><meta property="og:locale" content="zh-CN"><meta property="og:updated_time" content="2025-07-30T14:07:44.000Z"><meta property="article:author" content="Along"><meta property="article:tag" content="源码"><meta property="article:published_time" content="2023-09-15T00:00:00.000Z"><meta property="article:modified_time" content="2025-07-30T14:07:44.000Z"><script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"🎯虚拟DOM和ReactDOM.render源码","image":[""],"datePublished":"2023-09-15T00:00:00.000Z","dateModified":"2025-07-30T14:07:44.000Z","author":[{"@type":"Person","name":"Along","url":"/intro"}]}</script><link rel="icon" href="http://1.94.108.246:88/avatar.png"><title>🎯虚拟DOM和ReactDOM.render源码 | ALong</title><meta name="description" content="React.dom相关源码">
+    <link rel="preload" href="/my-blob/assets/style-Dfio6FoL.css" as="style"><link rel="stylesheet" href="/my-blob/assets/style-Dfio6FoL.css">
+    <link rel="modulepreload" href="/my-blob/assets/app-CaxZhZIt.js"><link rel="modulepreload" href="/my-blob/assets/dom.html-eWq1raxu.js"><link rel="modulepreload" href="/my-blob/assets/plugin-vue_export-helper-DlAUqK2U.js"><link rel="modulepreload" href="/my-blob/assets/dom.html-D6NE0_t5.js">
+    <link rel="prefetch" href="/my-blob/assets/friends.html-D2jhDmyA.js" as="script"><link rel="prefetch" href="/my-blob/assets/intro.html-nSUaQnT0.js" as="script"><link rel="prefetch" href="/my-blob/assets/README copy.html-DkpL-U8X.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-D9LXl8MN.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-js83MzDD.js" as="script"><link rel="prefetch" href="/my-blob/assets/browser.html-CtzUOXJ_.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-C4udOzHU.js" as="script"><link rel="prefetch" href="/my-blob/assets/computed.html-CUfCikqb.js" as="script"><link rel="prefetch" href="/my-blob/assets/containBlock.html-8mrB552-.js" as="script"><link rel="prefetch" href="/my-blob/assets/question.html-D9iYbIG_.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-D6Os3-EJ.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-BlSucXWB.js" as="script"><link rel="prefetch" href="/my-blob/assets/website.html-C-u-kVV_.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DItMwW4v.js" as="script"><link rel="prefetch" href="/my-blob/assets/vite.html-VISPreaq.js" as="script"><link rel="prefetch" href="/my-blob/assets/webpack.html-dtsFHbY3.js" as="script"><link rel="prefetch" href="/my-blob/assets/fileUpload.html-BeYHefGe.js" as="script"><link rel="prefetch" href="/my-blob/assets/largeScreen.html-Ccwzkdgr.js" as="script"><link rel="prefetch" href="/my-blob/assets/optimization.html-BsDapq6u.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-B5vfskGN.js" as="script"><link rel="prefetch" href="/my-blob/assets/tiptap.html-Bbq0tfJd.js" as="script"><link rel="prefetch" href="/my-blob/assets/cli.html-D3RtCXdD.js" as="script"><link rel="prefetch" href="/my-blob/assets/createProcedure.html-DgxO8KX_.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DSOtKR-t.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DHFc58T1.js" as="script"><link rel="prefetch" href="/my-blob/assets/redux.html-CgMnDdHE.js" as="script"><link rel="prefetch" href="/my-blob/assets/extend.html-ByQ7P6JE.js" as="script"><link rel="prefetch" href="/my-blob/assets/nuxt.html-Cq7l6Nhc.js" as="script"><link rel="prefetch" href="/my-blob/assets/pinia.html-gjGGOrAC.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-BiMKeS_n.js" as="script"><link rel="prefetch" href="/my-blob/assets/router.html-BHohDJFs.js" as="script"><link rel="prefetch" href="/my-blob/assets/vue3.html-BLakqa0o.js" as="script"><link rel="prefetch" href="/my-blob/assets/hooks.html-DduGtffu.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-Bs2Ak1c7.js" as="script"><link rel="prefetch" href="/my-blob/assets/router.html-u5Ui2zdc.js" as="script"><link rel="prefetch" href="/my-blob/assets/404.html-DG_UbY3V.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-CJXiJ7-e.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-Dluc-p6q.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DoVZuFIX.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-CKVpRvpA.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-oB4ILMqc.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-CGmLwPM7.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DdxuhAHE.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-BytCmtKs.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-BfxD_ZRL.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-Cwf5-OA3.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-D8u6JeIV.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-B00Z_RAb.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-7yCy4k8f.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-Cq895nim.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-rhx_L-Ug.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DQSo3z_0.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-BHKJZB3W.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DNUzS274.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-CymnQ8qL.js" as="script"><link rel="prefetch" href="/my-blob/assets/friends.html-C4FKxu8X.js" as="script"><link rel="prefetch" href="/my-blob/assets/intro.html-_dPVKPNh.js" as="script"><link rel="prefetch" href="/my-blob/assets/README copy.html-StmB8zZf.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-BBCjZE9o.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-Cd8rAeEz.js" as="script"><link rel="prefetch" href="/my-blob/assets/browser.html-CoidYPm2.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DT0Yw5DB.js" as="script"><link rel="prefetch" href="/my-blob/assets/computed.html-KrCK_aAp.js" as="script"><link rel="prefetch" href="/my-blob/assets/containBlock.html-BFMU5IlM.js" as="script"><link rel="prefetch" href="/my-blob/assets/question.html-D7zag7D9.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DheDiDca.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-7EZ83U1p.js" as="script"><link rel="prefetch" href="/my-blob/assets/website.html-DTOtM-p3.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DAl61hqB.js" as="script"><link rel="prefetch" href="/my-blob/assets/vite.html-DaaF7u-e.js" as="script"><link rel="prefetch" href="/my-blob/assets/webpack.html-CwBZo_oI.js" as="script"><link rel="prefetch" href="/my-blob/assets/fileUpload.html-OPfR_zoD.js" as="script"><link rel="prefetch" href="/my-blob/assets/largeScreen.html-qQ0ixGCa.js" as="script"><link rel="prefetch" href="/my-blob/assets/optimization.html-BJFFLVYh.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-wjw8iGFH.js" as="script"><link rel="prefetch" href="/my-blob/assets/tiptap.html-oKxsGh3F.js" as="script"><link rel="prefetch" href="/my-blob/assets/cli.html-DJc4ffIw.js" as="script"><link rel="prefetch" href="/my-blob/assets/createProcedure.html-A4Q10uep.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-WLiJgsHe.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-COiLkzFL.js" as="script"><link rel="prefetch" href="/my-blob/assets/redux.html-C07d93H4.js" as="script"><link rel="prefetch" href="/my-blob/assets/extend.html-BrBjOd5r.js" as="script"><link rel="prefetch" href="/my-blob/assets/nuxt.html-C4A8_mp3.js" as="script"><link rel="prefetch" href="/my-blob/assets/pinia.html-DuR2sVH0.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-VtiSYbYY.js" as="script"><link rel="prefetch" href="/my-blob/assets/router.html-BradvPgD.js" as="script"><link rel="prefetch" href="/my-blob/assets/vue3.html-BXAabjPZ.js" as="script"><link rel="prefetch" href="/my-blob/assets/hooks.html-DMsReWBi.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-C3BxHD9C.js" as="script"><link rel="prefetch" href="/my-blob/assets/router.html-IMtORGnE.js" as="script"><link rel="prefetch" href="/my-blob/assets/404.html-BylVV4kt.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-i-8iquB5.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-C7jfHM6P.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-5uOPf5Ql.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-BQcnrchC.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-B8PG0E_R.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-Di4UTIL6.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-D1McE9XX.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-D4bH59__.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-B2vnamyV.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-C2oJN8H8.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-Cyi69EBI.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-BbLEEtng.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-CR0w9dIx.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DwpC0epU.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-DK3BJydi.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-CH0EtzBG.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-BDR-dxHp.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-BDSJpAKx.js" as="script"><link rel="prefetch" href="/my-blob/assets/index.html-Qd89ccLW.js" as="script"><link rel="prefetch" href="/my-blob/assets/giscus-BwIGYrs0.js" as="script"><link rel="prefetch" href="/my-blob/assets/photoswipe.esm-DXWKOczD.js" as="script">
+  </head>
+  <body>
+    <div id="app"><!--[--><!--[--><!--[--><span tabindex="-1"></span><a href="#main-content" class="vp-skip-link sr-only">跳至主要內容</a><!--]--><div class="theme-container has-toc"><!--[--><header id="navbar" class="vp-navbar"><div class="vp-navbar-start"><button type="button" class="vp-toggle-sidebar-button" title="Toggle Sidebar"><span class="icon"></span></button><!--[--><!----><!--]--><!--[--><a class="vp-link vp-brand vp-brand" href="/my-blob/"><img class="vp-nav-logo" src="http://1.94.108.246:88/avatar.png" alt><!----><span class="vp-site-name hide-in-pad">ALong</span></a><!--]--><!--[--><!----><!--]--></div><div class="vp-navbar-center"><!--[--><!----><!--]--><!--[--><nav class="vp-nav-links"><div class="nav-item hide-in-mobile"><a aria-label="首页" class="vp-link nav-link nav-link" href="/my-blob/"><span class="font-icon icon iconfont icon-shouye" style=""></span>首页<!----></a></div><div class="nav-item hide-in-mobile"><div class="dropdown-wrapper"><button type="button" class="dropdown-title" aria-label="分类"><span class="title"><span class="font-icon icon iconfont icon-fenlei" style=""></span>分类</span><span class="arrow"></span><ul class="nav-dropdown"><li class="dropdown-item"><a aria-label="vue" class="vp-link nav-link nav-link" href="/my-blob/posts/vue/"><span class="font-icon icon iconfont icon-Vue" style=""></span>vue<!----></a></li><li class="dropdown-item"><a aria-label="个人收藏" class="vp-link nav-link nav-link" href="/my-blob/posts/personal/"><span class="font-icon icon iconfont icon-shoucangjia" style=""></span>个人收藏<!----></a></li><li class="dropdown-item"><a aria-label="浏览器" class="vp-link nav-link nav-link" href="/my-blob/posts/browser/"><span class="font-icon icon iconfont icon-liulanqi" style=""></span>浏览器<!----></a></li><li class="dropdown-item"><a aria-label="CSS" class="vp-link nav-link nav-link" href="/my-blob/posts/css/"><span class="font-icon icon iconfont icon-c" style=""></span>CSS<!----></a></li><li class="dropdown-item"><a aria-label="React" class="vp-link nav-link active nav-link active" href="/my-blob/posts/react/"><span class="font-icon icon iconfont icon-React" style=""></span>React<!----></a></li><li class="dropdown-item"><a aria-label="工程化" class="vp-link nav-link nav-link" href="/my-blob/posts/project/"><span class="font-icon icon iconfont icon-gongcheng-" style=""></span>工程化<!----></a></li><li class="dropdown-item"><a aria-label="问题案例方案" class="vp-link nav-link nav-link" href="/my-blob/posts/question/"><span class="font-icon icon iconfont icon-question" style=""></span>问题案例方案<!----></a></li></ul></button></div></div><div class="nav-item hide-in-mobile"><a aria-label="友链" class="vp-link nav-link nav-link" href="/my-blob/friends.html"><span class="font-icon icon iconfont icon-youlian" style=""></span>友链<!----></a></div></nav><!--]--><!--[--><!----><!--]--></div><div class="vp-navbar-end"><!--[--><!----><!--]--><!--[--><!----><div class="nav-item vp-repo"><a class="vp-repo-link" href="https://gitee.com/durianalong/new-blob" target="_blank" rel="noopener noreferrer" aria-label="Gitee"><svg xmlns="http://www.w3.org/2000/svg" class="icon gitee-icon" viewBox="0 0 1024 1024" fill="currentColor" aria-label="gitee icon" style="width:1.25rem;height:1.25rem;vertical-align:middle;"><path d="M512 992C246.92 992 32 777.08 32 512S246.92 32 512 32s480 214.92 480 480-214.92 480-480 480zm242.97-533.34H482.39a23.7 23.7 0 0 0-23.7 23.7l-.03 59.28c0 13.08 10.59 23.7 23.7 23.7h165.96a23.7 23.7 0 0 1 23.7 23.7v11.85a71.1 71.1 0 0 1-71.1 71.1H375.71a23.7 23.7 0 0 1-23.7-23.7V423.11a71.1 71.1 0 0 1 71.1-71.1h331.8a23.7 23.7 0 0 0 23.7-23.7l.06-59.25a23.73 23.73 0 0 0-23.7-23.73H423.11a177.78 177.78 0 0 0-177.78 177.75v331.83c0 13.08 10.62 23.7 23.7 23.7h349.62a159.99 159.99 0 0 0 159.99-159.99V482.33a23.7 23.7 0 0 0-23.7-23.7z"></path></svg></a></div><div class="nav-item hide-in-mobile"><button type="button" id="appearance-switch"><svg xmlns="http://www.w3.org/2000/svg" class="icon auto-icon" viewBox="0 0 1024 1024" fill="currentColor" aria-label="auto icon" style="display:block;"><path d="M512 992C246.92 992 32 777.08 32 512S246.92 32 512 32s480 214.92 480 480-214.92 480-480 480zm0-840c-198.78 0-360 161.22-360 360 0 198.84 161.22 360 360 360s360-161.16 360-360c0-198.78-161.22-360-360-360zm0 660V212c165.72 0 300 134.34 300 300 0 165.72-134.28 300-300 300z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" class="icon dark-icon" viewBox="0 0 1024 1024" fill="currentColor" aria-label="dark icon" style="display:none;"><path d="M524.8 938.667h-4.267a439.893 439.893 0 0 1-313.173-134.4 446.293 446.293 0 0 1-11.093-597.334A432.213 432.213 0 0 1 366.933 90.027a42.667 42.667 0 0 1 45.227 9.386 42.667 42.667 0 0 1 10.24 42.667 358.4 358.4 0 0 0 82.773 375.893 361.387 361.387 0 0 0 376.747 82.774 42.667 42.667 0 0 1 54.187 55.04 433.493 433.493 0 0 1-99.84 154.88 438.613 438.613 0 0 1-311.467 128z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" class="icon light-icon" viewBox="0 0 1024 1024" fill="currentColor" aria-label="light icon" style="display:none;"><path d="M952 552h-80a40 40 0 0 1 0-80h80a40 40 0 0 1 0 80zM801.88 280.08a41 41 0 0 1-57.96-57.96l57.96-58a41.04 41.04 0 0 1 58 58l-58 57.96zM512 752a240 240 0 1 1 0-480 240 240 0 0 1 0 480zm0-560a40 40 0 0 1-40-40V72a40 40 0 0 1 80 0v80a40 40 0 0 1-40 40zm-289.88 88.08-58-57.96a41.04 41.04 0 0 1 58-58l57.96 58a41 41 0 0 1-57.96 57.96zM192 512a40 40 0 0 1-40 40H72a40 40 0 0 1 0-80h80a40 40 0 0 1 40 40zm30.12 231.92a41 41 0 0 1 57.96 57.96l-57.96 58a41.04 41.04 0 0 1-58-58l58-57.96zM512 832a40 40 0 0 1 40 40v80a40 40 0 0 1-80 0v-80a40 40 0 0 1 40-40zm289.88-88.08 58 57.96a41.04 41.04 0 0 1-58 58l-57.96-58a41 41 0 0 1 57.96-57.96z"></path></svg></button></div><form class="search-box" role="search"><input type="search" placeholder="搜索" autocomplete="off" spellcheck="false" value><!----></form><!--]--><!--[--><!----><!--]--><button type="button" class="vp-toggle-navbar-button" aria-label="Toggle Navbar" aria-expanded="false" aria-controls="nav-screen"><span><span class="vp-top"></span><span class="vp-middle"></span><span class="vp-bottom"></span></span></button></div></header><!----><!--]--><!----><div class="toggle-sidebar-wrapper"><span class="arrow start"></span></div><aside id="sidebar" class="vp-sidebar"><!--[--><!----><!--]--><ul class="vp-sidebar-links"><li><!--[--><a aria-label="首页" class="vp-link nav-link vp-sidebar-link vp-sidebar-page nav-link vp-sidebar-link vp-sidebar-page" href="/my-blob/"><span class="font-icon icon iconfont icon-shouye" style=""></span>首页<!----></a><ul class="vp-sidebar-sub-headers"></ul><!--]--></li><li><section class="vp-sidebar-group"><p class="vp-sidebar-heading clickable active"><span class="font-icon icon iconfont icon-book" style=""></span><a aria-label="文章笔记" class="vp-link nav-link active vp-sidebar-title nav-link active vp-sidebar-title" href="/my-blob/posts/"><!---->文章笔记<!----></a><!----></p><ul class="vp-sidebar-links"><li><section class="vp-sidebar-group"><button class="vp-sidebar-heading clickable" type="button"><span class="font-icon icon iconfont icon-Vue" style=""></span><span class="vp-sidebar-title">工程化</span><span class="vp-arrow end"></span></button><!----></section></li><li><section class="vp-sidebar-group"><button class="vp-sidebar-heading clickable" type="button"><span class="font-icon icon iconfont icon-liulanqi" style=""></span><span class="vp-sidebar-title">浏览器</span><span class="vp-arrow end"></span></button><!----></section></li><li><section class="vp-sidebar-group"><button class="vp-sidebar-heading clickable" type="button"><span class="font-icon icon iconfont icon-gongcheng-" style=""></span><span class="vp-sidebar-title">前端工程化</span><span class="vp-arrow end"></span></button><!----></section></li><li><section class="vp-sidebar-group"><button class="vp-sidebar-heading clickable" type="button"><span class="font-icon icon iconfont icon-shoucangjia" style=""></span><span class="vp-sidebar-title">收藏夹</span><span class="vp-arrow end"></span></button><!----></section></li><li><section class="vp-sidebar-group"><button class="vp-sidebar-heading clickable" type="button"><span class="font-icon icon iconfont icon-question" style=""></span><span class="vp-sidebar-title">问题案例方案</span><span class="vp-arrow end"></span></button><!----></section></li><li><section class="vp-sidebar-group"><button class="vp-sidebar-heading clickable" type="button"><span class="font-icon icon iconfont icon-c" style=""></span><span class="vp-sidebar-title">css</span><span class="vp-arrow end"></span></button><!----></section></li><li><section class="vp-sidebar-group"><button class="vp-sidebar-heading clickable active" type="button"><span class="font-icon icon iconfont icon-React" style=""></span><span class="vp-sidebar-title">react</span><span class="vp-arrow down"></span></button><ul class="vp-sidebar-links"><li><section class="vp-sidebar-group"><button class="vp-sidebar-heading clickable active" type="button"><span class="font-icon icon iconfont icon-laptop-code" style=""></span><span class="vp-sidebar-title">react源码</span><span class="vp-arrow down"></span></button><ul class="vp-sidebar-links"><li><!--[--><a aria-label="🎯虚拟DOM和ReactDOM.render源码" class="vp-link nav-link active vp-sidebar-link vp-sidebar-page active nav-link active vp-sidebar-link vp-sidebar-page active" href="/my-blob/posts/react/sourceCode/dom.html"><!---->🎯虚拟DOM和ReactDOM.render源码<!----></a><ul class="vp-sidebar-sub-headers"><li class="vp-sidebar-sub-header"><a aria-label="React的DOM渲染过程" class="vp-link nav-link vp-sidebar-link vp-heading nav-link vp-sidebar-link vp-heading" href="/my-blob/posts/react/sourceCode/dom.html#react的dom渲染过程"><!---->React的DOM渲染过程<!----></a><ul class="vp-sidebar-sub-headers"></ul></li><li class="vp-sidebar-sub-header"><a aria-label="React.createElement源码" class="vp-link nav-link vp-sidebar-link vp-heading nav-link vp-sidebar-link vp-heading" href="/my-blob/posts/react/sourceCode/dom.html#react-createelement源码"><!---->React.createElement源码<!----></a><ul class="vp-sidebar-sub-headers"></ul></li><li class="vp-sidebar-sub-header"><a aria-label="ReactDOM.render源码" class="vp-link nav-link vp-sidebar-link vp-heading nav-link vp-sidebar-link vp-heading" href="/my-blob/posts/react/sourceCode/dom.html#reactdom-render源码"><!---->ReactDOM.render源码<!----></a><ul class="vp-sidebar-sub-headers"></ul></li><li class="vp-sidebar-sub-header"><a aria-label="🎯React.forwardRef源码" class="vp-link nav-link vp-sidebar-link vp-heading nav-link vp-sidebar-link vp-heading" href="/my-blob/posts/react/sourceCode/dom.html#🎯react-forwardref源码"><!---->🎯React.forwardRef源码<!----></a><ul class="vp-sidebar-sub-headers"><li class="vp-sidebar-sub-header"><a aria-label="React.forwardRef的基本使用" class="vp-link nav-link vp-sidebar-link vp-heading nav-link vp-sidebar-link vp-heading" href="/my-blob/posts/react/sourceCode/dom.html#react-forwardref的基本使用"><!---->React.forwardRef的基本使用<!----></a><ul class="vp-sidebar-sub-headers"></ul></li><li class="vp-sidebar-sub-header"><a aria-label="React.forwardRef源码" class="vp-link nav-link vp-sidebar-link vp-heading nav-link vp-sidebar-link vp-heading" href="/my-blob/posts/react/sourceCode/dom.html#react-forwardref源码"><!---->React.forwardRef源码<!----></a><ul class="vp-sidebar-sub-headers"></ul></li></ul></li><li class="vp-sidebar-sub-header"><a aria-label="🎯React.createContext源码" class="vp-link nav-link vp-sidebar-link vp-heading nav-link vp-sidebar-link vp-heading" href="/my-blob/posts/react/sourceCode/dom.html#🎯react-createcontext源码"><!---->🎯React.createContext源码<!----></a><ul class="vp-sidebar-sub-headers"><li class="vp-sidebar-sub-header"><a aria-label="React.createContext源码" class="vp-link nav-link vp-sidebar-link vp-heading nav-link vp-sidebar-link vp-heading" href="/my-blob/posts/react/sourceCode/dom.html#react-createcontext源码"><!---->React.createContext源码<!----></a><ul class="vp-sidebar-sub-headers"></ul></li></ul></li><li class="vp-sidebar-sub-header"><a aria-label="🎯react-router源码" class="vp-link nav-link vp-sidebar-link vp-heading nav-link vp-sidebar-link vp-heading" href="/my-blob/posts/react/sourceCode/dom.html#🎯react-router源码"><!---->🎯react-router源码<!----></a><ul class="vp-sidebar-sub-headers"><li class="vp-sidebar-sub-header"><a aria-label="Hash和History路由模式的实现原理" class="vp-link nav-link vp-sidebar-link vp-heading nav-link vp-sidebar-link vp-heading" href="/my-blob/posts/react/sourceCode/dom.html#hash和history路由模式的实现原理"><!---->Hash和History路由模式的实现原理<!----></a><ul class="vp-sidebar-sub-headers"></ul></li></ul></li></ul><!--]--></li><li><!--[--><a aria-label="🎯React Hooks源码" class="vp-link nav-link vp-sidebar-link vp-sidebar-page nav-link vp-sidebar-link vp-sidebar-page" href="/my-blob/posts/react/sourceCode/hooks.html"><!---->🎯React Hooks源码<!----></a><ul class="vp-sidebar-sub-headers"></ul><!--]--></li><li><!--[--><a aria-label="🎯react-router源码" class="vp-link nav-link vp-sidebar-link vp-sidebar-page nav-link vp-sidebar-link vp-sidebar-page" href="/my-blob/posts/react/sourceCode/router.html"><!---->🎯react-router源码<!----></a><ul class="vp-sidebar-sub-headers"></ul><!--]--></li></ul></section></li><li><!--[--><a aria-label="redux基本使用" class="vp-link nav-link vp-sidebar-link vp-sidebar-page nav-link vp-sidebar-link vp-sidebar-page" href="/my-blob/posts/react/redux.html"><!---->redux基本使用<!----></a><ul class="vp-sidebar-sub-headers"></ul><!--]--></li></ul></section></li><li><section class="vp-sidebar-group"><button class="vp-sidebar-heading clickable" type="button"><span class="font-icon icon iconfont icon-Vue" style=""></span><span class="vp-sidebar-title">vue</span><span class="vp-arrow end"></span></button><!----></section></li></ul></section></li><li><!--[--><a aria-label="基本信息" class="vp-link nav-link vp-sidebar-link vp-sidebar-page nav-link vp-sidebar-link vp-sidebar-page" href="/my-blob/intro.html"><span class="font-icon icon iconfont icon-gerenxinxi" style=""></span>基本信息<!----></a><ul class="vp-sidebar-sub-headers"></ul><!--]--></li></ul><!--[--><!----><!--]--></aside><!--[--><main id="main-content" class="vp-page"><!--[--><!--[--><!----><!--]--><!----><nav class="vp-breadcrumb disable"></nav><div class="vp-page-title"><h1><!---->🎯虚拟DOM和ReactDOM.render源码</h1><div class="page-info"><span class="page-author-info" aria-label="作者🖊" data-balloon-pos="down"><svg xmlns="http://www.w3.org/2000/svg" class="icon author-icon" viewBox="0 0 1024 1024" fill="currentColor" aria-label="author icon"><path d="M649.6 633.6c86.4-48 147.2-144 147.2-249.6 0-160-128-288-288-288s-288 128-288 288c0 108.8 57.6 201.6 147.2 249.6-121.6 48-214.4 153.6-240 288-3.2 9.6 0 19.2 6.4 25.6 3.2 9.6 12.8 12.8 22.4 12.8h704c9.6 0 19.2-3.2 25.6-12.8 6.4-6.4 9.6-16 6.4-25.6-25.6-134.4-121.6-240-243.2-288z"></path></svg><span><a class="page-author-item" href="/intro" target="_blank" rel="noopener noreferrer">Along</a></span><span property="author" content="Along"></span></span><!----><span class="page-date-info" aria-label="写作日期📅" data-balloon-pos="down"><svg xmlns="http://www.w3.org/2000/svg" class="icon calendar-icon" viewBox="0 0 1024 1024" fill="currentColor" aria-label="calendar icon"><path d="M716.4 110.137c0-18.753-14.72-33.473-33.472-33.473-18.753 0-33.473 14.72-33.473 33.473v33.473h66.993v-33.473zm-334.87 0c0-18.753-14.72-33.473-33.473-33.473s-33.52 14.72-33.52 33.473v33.473h66.993v-33.473zm468.81 33.52H716.4v100.465c0 18.753-14.72 33.473-33.472 33.473a33.145 33.145 0 01-33.473-33.473V143.657H381.53v100.465c0 18.753-14.72 33.473-33.473 33.473a33.145 33.145 0 01-33.473-33.473V143.657H180.6A134.314 134.314 0 0046.66 277.595v535.756A134.314 134.314 0 00180.6 947.289h669.74a134.36 134.36 0 00133.94-133.938V277.595a134.314 134.314 0 00-133.94-133.938zm33.473 267.877H147.126a33.145 33.145 0 01-33.473-33.473c0-18.752 14.72-33.473 33.473-33.473h736.687c18.752 0 33.472 14.72 33.472 33.473a33.145 33.145 0 01-33.472 33.473z"></path></svg><span><!----></span><meta property="datePublished" content="2023-09-15T00:00:00.000Z"></span><!----><span class="page-reading-time-info" aria-label="阅读时间⌛" data-balloon-pos="down"><svg xmlns="http://www.w3.org/2000/svg" class="icon timer-icon" viewBox="0 0 1024 1024" fill="currentColor" aria-label="timer icon"><path d="M799.387 122.15c4.402-2.978 7.38-7.897 7.38-13.463v-1.165c0-8.933-7.38-16.312-16.312-16.312H256.33c-8.933 0-16.311 7.38-16.311 16.312v1.165c0 5.825 2.977 10.874 7.637 13.592 4.143 194.44 97.22 354.963 220.201 392.763-122.204 37.542-214.893 196.511-220.2 389.397-4.661 5.049-7.638 11.651-7.638 19.03v5.825h566.49v-5.825c0-7.379-2.849-13.981-7.509-18.9-5.049-193.016-97.867-351.985-220.2-389.527 123.24-37.67 216.446-198.453 220.588-392.892zM531.16 450.445v352.632c117.674 1.553 211.787 40.778 211.787 88.676H304.097c0-48.286 95.149-87.382 213.728-88.676V450.445c-93.077-3.107-167.901-81.297-167.901-177.093 0-8.803 6.99-15.793 15.793-15.793 8.803 0 15.794 6.99 15.794 15.793 0 80.261 63.69 145.635 142.01 145.635s142.011-65.374 142.011-145.635c0-8.803 6.99-15.793 15.794-15.793s15.793 6.99 15.793 15.793c0 95.019-73.789 172.82-165.96 177.093z"></path></svg><span>大约 5 分钟</span><meta property="timeRequired" content="PT5M"></span><span class="page-category-info" aria-label="分类🌈" data-balloon-pos="down"><svg xmlns="http://www.w3.org/2000/svg" class="icon category-icon" viewBox="0 0 1024 1024" fill="currentColor" aria-label="category icon"><path d="M148.41 106.992h282.176c22.263 0 40.31 18.048 40.31 40.31V429.48c0 22.263-18.047 40.31-40.31 40.31H148.41c-22.263 0-40.311-18.047-40.311-40.31V147.302c0-22.263 18.048-40.31 40.311-40.31zM147.556 553.478H429.73c22.263 0 40.311 18.048 40.311 40.31v282.176c0 22.263-18.048 40.312-40.31 40.312H147.555c-22.263 0-40.311-18.049-40.311-40.312V593.79c0-22.263 18.048-40.311 40.31-40.311zM593.927 106.992h282.176c22.263 0 40.31 18.048 40.31 40.31V429.48c0 22.263-18.047 40.31-40.31 40.31H593.927c-22.263 0-40.311-18.047-40.311-40.31V147.302c0-22.263 18.048-40.31 40.31-40.31zM730.22 920.502H623.926c-40.925 0-74.22-33.388-74.22-74.425V623.992c0-41.038 33.387-74.424 74.425-74.424h222.085c41.038 0 74.424 33.226 74.424 74.067v114.233c0 10.244-8.304 18.548-18.547 18.548s-18.548-8.304-18.548-18.548V623.635c0-20.388-16.746-36.974-37.33-36.974H624.13c-20.585 0-37.331 16.747-37.331 37.33v222.086c0 20.585 16.654 37.331 37.126 37.331H730.22c10.243 0 18.547 8.304 18.547 18.547 0 10.244-8.304 18.547-18.547 18.547z"></path></svg><!--[--><span class="page-category-item category3 clickable" role="navigation">react</span><!--]--><meta property="articleSection" content="react"></span><span class="page-tag-info" aria-label="标签🏷" data-balloon-pos="down"><svg xmlns="http://www.w3.org/2000/svg" class="icon tag-icon" viewBox="0 0 1024 1024" fill="currentColor" aria-label="tag icon"><path d="M939.902 458.563L910.17 144.567c-1.507-16.272-14.465-29.13-30.737-30.737L565.438 84.098h-.402c-3.215 0-5.726 1.005-7.634 2.913l-470.39 470.39a10.004 10.004 0 000 14.164l365.423 365.424c1.909 1.908 4.42 2.913 7.132 2.913s5.223-1.005 7.132-2.913l470.39-470.39c2.01-2.11 3.014-5.023 2.813-8.036zm-240.067-72.121c-35.458 0-64.286-28.828-64.286-64.286s28.828-64.285 64.286-64.285 64.286 28.828 64.286 64.285-28.829 64.286-64.286 64.286z"></path></svg><!--[--><span class="page-tag-item tag6 clickable" role="navigation">源码</span><!--]--><meta property="keywords" content="源码"></span></div><hr></div><div class="toc-place-holder"><aside id="toc"><!--[--><!----><!--]--><div class="toc-header">此页内容<button type="button" class="print-button" title="打印"><svg xmlns="http://www.w3.org/2000/svg" class="icon print-icon" viewBox="0 0 1024 1024" fill="currentColor" aria-label="print icon"><path d="M819.2 364.8h-44.8V128c0-17.067-14.933-32-32-32H281.6c-17.067 0-32 14.933-32 32v236.8h-44.8C145.067 364.8 96 413.867 96 473.6v192c0 59.733 49.067 108.8 108.8 108.8h44.8V896c0 17.067 14.933 32 32 32h460.8c17.067 0 32-14.933 32-32V774.4h44.8c59.733 0 108.8-49.067 108.8-108.8v-192c0-59.733-49.067-108.8-108.8-108.8zM313.6 160h396.8v204.8H313.6V160zm396.8 704H313.6V620.8h396.8V864zM864 665.6c0 25.6-19.2 44.8-44.8 44.8h-44.8V588.8c0-17.067-14.933-32-32-32H281.6c-17.067 0-32 14.933-32 32v121.6h-44.8c-25.6 0-44.8-19.2-44.8-44.8v-192c0-25.6 19.2-44.8 44.8-44.8h614.4c25.6 0 44.8 19.2 44.8 44.8v192z"></path></svg></button></div><div class="toc-wrapper"><ul class="toc-list"><!--[--><li class="toc-item"><a class="vp-link toc-link level2 toc-link level2" href="#react的dom渲染过程">React的DOM渲染过程</a></li><!----><!--]--><!--[--><li class="toc-item"><a class="vp-link toc-link level2 toc-link level2" href="#react-createelement源码">React.createElement源码</a></li><!----><!--]--><!--[--><li class="toc-item"><a class="vp-link toc-link level2 toc-link level2" href="#reactdom-render源码">ReactDOM.render源码</a></li><!----><!--]--><!--[--><li class="toc-item"><a class="vp-link toc-link level2 toc-link level2" href="#🎯react-forwardref源码">🎯React.forwardRef源码</a></li><li><ul class="toc-list"><!--[--><li class="toc-item"><a class="vp-link toc-link level3 toc-link level3" href="#react-forwardref的基本使用">React.forwardRef的基本使用</a></li><!----><!--]--><!--[--><li class="toc-item"><a class="vp-link toc-link level3 toc-link level3" href="#react-forwardref源码">React.forwardRef源码</a></li><!----><!--]--></ul></li><!--]--><!--[--><li class="toc-item"><a class="vp-link toc-link level2 toc-link level2" href="#🎯react-createcontext源码">🎯React.createContext源码</a></li><li><ul class="toc-list"><!--[--><li class="toc-item"><a class="vp-link toc-link level3 toc-link level3" href="#react-createcontext源码">React.createContext源码</a></li><!----><!--]--></ul></li><!--]--><!--[--><li class="toc-item"><a class="vp-link toc-link level2 toc-link level2" href="#🎯react-router源码">🎯react-router源码</a></li><li><ul class="toc-list"><!--[--><li class="toc-item"><a class="vp-link toc-link level3 toc-link level3" href="#hash和history路由模式的实现原理">Hash和History路由模式的实现原理</a></li><!----><!--]--></ul></li><!--]--></ul><div class="toc-marker" style="top:-1.7rem;"></div></div><!--[--><!----><!--]--></aside></div><!--[--><!----><!--]--><div class="theme-hope-content"><p>React.dom相关源码</p><!-- more --><h1 id="🎯虚拟dom和reactdom-render源码" tabindex="-1"><a class="header-anchor" href="#🎯虚拟dom和reactdom-render源码" aria-hidden="true">#</a> 🎯虚拟DOM和ReactDOM.render源码</h1><h2 id="react的dom渲染过程" tabindex="-1"><a class="header-anchor" href="#react的dom渲染过程" aria-hidden="true">#</a> React的DOM渲染过程</h2><blockquote><p>JSX经过babel编译成React.createElement方法，生成虚拟DOM—vnode，再经过render渲染成真实DOM</p></blockquote><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>import React from &#39;./React&#39;;
+import ReactDOM from &#39;./react-dom&#39;;
+
+let element = React.createElement(
+  &#39;h1&#39;,
+  {
+    className: &#39;title&#39;,
+    style: {
+      color: &#39;green&#39;,
+    },
+  },
+  React.createElement(&#39;span&#39;, null, 666),
+);
+
+const FunctionCpn = (props) =&gt; {
+  return React.createElement(&#39;h1&#39;, { style: { color: &#39;blue&#39; } }, 123, props.name);
+};
+
+const element2 = &lt;FunctionCpn name=&quot;100&quot;&gt;&lt;/FunctionCpn&gt;;
+
+console.log(element);
+
+ReactDOM.render(element2, document.getElementById(&#39;root&#39;));
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>可以看到vnode的props中存储了JSX中的数据，当标签内的children只有一个时，以****字符串保存；当有多个时，以数组形式保存。children也是JSX时，则以对象形式保存</p><h2 id="react-createelement源码" tabindex="-1"><a class="header-anchor" href="#react-createelement源码" aria-hidden="true">#</a> React.createElement源码</h2><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>import { REACT_ELEMENT } from &#39;./constants&#39;;
+import { toObjFn } from &#39;./utils&#39;;
+🧲
+function createElement(type, config, ...children) {
+  let key, ref;
+  let props = { ...config };
+  if (config) {
+    key = config.key;
+    ref = config.ref;
+    delete config.key;
+    delete config.ref;
+  }
+  //有多个儿子
+  if (arguments.length &gt; 3) {
+    props.children = Array.prototype.slice.call(arguments, 2).map(toObjFn); //截取arguments第三位开始的所有 []
+  }
+  //只有一个儿子
+  if (arguments.length == 3) {
+    props.children = toObjFn(children[0]);
+  }
+
+  return {
+    //vnode
+    $$typeof: REACT_ELEMENT,
+    key, //diff
+    ref, //获取真实DOM
+    type, //类型 div
+    props,
+  };
+}
+
+const React = {
+  createElement,
+};
+
+export default React;
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="reactdom-render源码" tabindex="-1"><a class="header-anchor" href="#reactdom-render源码" aria-hidden="true">#</a> ReactDOM.render源码</h2><p>真实dom</p><p>处理props</p><p>处理children</p><p>函数式组件的vnode的type，会被浏览器处理成一个函数，调用即可生成函数式组件的虚拟DOM</p><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>import { REACT_TEXT } from &#39;./constants&#39;;
+
+🧲//初始化react元素
+const render = (vdom, container) =&gt; {
+  //1 vdom=&gt;真实dom
+  let newDom = createDom(vdom);
+  //2 真实dom放到对应节点
+  container.appendChild(newDom);
+};
+🧲//vdom=&gt;真实dom
+const createDom = (vdom) =&gt; {
+  let { type, props, content } = vdom;
+  let dom; //真实dom
+  //forwardRef
+  if (type &amp;&amp; type.$$typeof) {
+    return mountForWardRef(vdom);
+  }
+  //1 判断type是文本（string/number）或者元素div
+  else if (type == REACT_TEXT) {
+    dom = document.createTextNode(content);
+  } else if (typeof type == &#39;function&#39;) {
+    return mountFunctionCpn(vdom);
+  } else {
+    dom = document.createElement(type);
+  }
+  //2 添加props
+  if (props) {
+    //新旧props产生的更新
+    updateProps(dom, {}, props); //真实dom/旧props/新props
+    //3 children
+    let children = props.children;
+    if (children) {
+      changeChildren(children, dom);
+    }
+  }
+  //返回真实dom
+  return dom;
+};
+🧲//处理函数式组件
+const mountFunctionCpn = (vdom) =&gt; {
+  let { type, props } = vdom;
+  let functionVdom = type(props);
+  return createDom(functionVdom);
+};
+🧲//处理forwardRef
+const mountForWardRef = (vdom) =&gt; {
+  let { type, props, ref } = vdom;
+  let refVnode = type.render(props, ref); //函数式组件
+  return createDom(refVnode);
+};
+🧲//处理children
+const changeChildren = (children, dom) =&gt; {
+  //1.一个children ,对象格式
+  if (typeof children === &#39;object&#39; &amp;&amp; children.type) {
+    render(children, dom);
+  } else if (Array.isArray(children)) {
+    children.forEach((item) =&gt; render(item, dom));
+  }
+  //2.多个children ,数组格式
+};
+
+🧲//更新props
+const updateProps = (dom, oldProps, newProps) =&gt; {
+  if (newProps) {
+    for (let key in newProps) {
+      //给元素添加属性，注意props的children（不需要加）和style（可能存在多个属性需要遍历添加）
+      if (key === &#39;children&#39;) {
+        continue;
+      } else if (key === &#39;style&#39;) {
+        let styleObj = newProps[key];
+        for (let arr in styleObj) {
+          dom.style[arr] = styleObj[arr];
+        }
+      } else {
+        //其他属性
+        dom[key] = newProps[key];
+      }
+    }
+  }
+  //如果oldProps存在，则进行新旧比较，将旧的属性在新属性中不存在的值删除
+  if (oldProps) {
+    for (let key in oldProps) {
+      if (!newProps[key]) {
+        dom[key] = null;
+      }
+    }
+  }
+};
+
+const ReactDOM = {
+  render,
+};
+
+export default ReactDOM;
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="🎯react-forwardref源码" tabindex="-1"><a class="header-anchor" href="#🎯react-forwardref源码" aria-hidden="true">#</a> 🎯React.forwardRef源码</h2><h3 id="react-forwardref的基本使用" tabindex="-1"><a class="header-anchor" href="#react-forwardref的基本使用" aria-hidden="true">#</a> React.forwardRef的基本使用</h3><p>我们一般通过React.forwardRef来获取函数式组件的子组件内部的dom（因为直接使用ref不能获取函数式组件的dom）</p><p>可以看到forwardRef包裹的 <code>&lt;Child/&gt;</code>组件的type有两个属性，其中render是浏览器生成的，调用可以生成vnode</p><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>import { useRef } from &#39;react&#39;;
+import React from &#39;react&#39;;
+import ReactDOM from &#39;react-dom&#39;;
+
+const Child = React.forwardRef((props, childRef) =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;input type=&quot;text&quot; ref={childRef} /&gt;
+    &lt;/div&gt;
+  );
+});
+console.log(&lt;Child /&gt;);
+            
+const Main = () =&gt; {
+  const childRef = useRef(null);
+  const childhandler = () =&gt; {
+    console.log(childRef);
+  };
+  return (
+    &lt;div&gt;
+      &lt;Child ref={childRef}&gt;&lt;/Child&gt;
+      &lt;button onClick={childhandler}&gt;getFocus&lt;/button&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;Main /&gt;, document.getElementById(&#39;root&#39;));
+
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="react-forwardref源码" tabindex="-1"><a class="header-anchor" href="#react-forwardref源码" aria-hidden="true">#</a> React.forwardRef源码</h3><blockquote><p>React.forwardRef</p></blockquote><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>import { REACT_ELEMENT, REACT_FORWARDREF } from &#39;./constants&#39;;
+🧲
+function createElement(type, config, ...children) {
+  //...
+}
+🧲
+function forwardRef(render) {
+  return {
+    $$typeofs: REACT_FORWARDREF,
+    render,
+  };
+}
+
+const React = {
+  createElement,
+  forwardRef,
+};
+
+export default React;
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><blockquote><p>ReactDOM</p></blockquote><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>import { REACT_TEXT } from &#39;./constants&#39;;
+
+//初始化react元素
+const render = (vdom, container) =&gt; {
+//...
+};
+//vdom=&gt;真实dom
+const createDom = (vdom) =&gt; {
+  let { type, props, content } = vdom;
+  let dom; 
+  //forwardRef判断
+  if (type &amp;&amp; type.$$typeof) {
+    return mountForWardRef(vdom);
+  }
+  else if (type == REACT_TEXT) {
+    dom = document.createTextNode(content);
+  } else if (typeof type == &#39;function&#39;) {
+    return mountFunctionCpn(vdom);
+  } else {
+    dom = document.createElement(type);
+  }
+  if (props) {
+    updateProps(dom, {}, props);
+    let children = props.children;
+    if (children) {
+      changeChildren(children, dom);
+    }
+  }
+  return dom;
+};
+
+//处理forwardRef
+const mountForWardRef = (vdom) =&gt; {
+  let { type, props, ref } = vdom;
+  let refVnode = type.render(props, ref); 
+  return createDom(refVnode);
+};
+
+const ReactDOM = {
+  render,
+};
+
+export default ReactDOM;
+
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="🎯react-createcontext源码" tabindex="-1"><a class="header-anchor" href="#🎯react-createcontext源码" aria-hidden="true">#</a> 🎯React.createContext源码</h2><h3 id="react-createcontext源码" tabindex="-1"><a class="header-anchor" href="#react-createcontext源码" aria-hidden="true">#</a> React.createContext源码</h3><blockquote><p><strong>React</strong></p></blockquote><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>function createContext() { //本质就是一个变量
+   let context = {
+      $$typeofs: REACT_CONTEXT,
+      _currentValue: undefined
+   }
+
+   context.Provider = {
+      $$typeofs: REACT_PROVIDER,
+      _context: context
+   }
+   context.Consumer = {
+      $$typeofs: REACT_CONTEXT,
+      _context: context
+   }
+   return context
+}
+
+const React = {
+   createContext,
+}
+
+export default React
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><blockquote><p><strong>ReactDOM</strong></p></blockquote><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>🧲function crateDom(vdom) {
+
+    if (typeof vdom == &#39;string&#39; || typeof vdom == &#39;number&#39;) {
+        vdom = {
+            type: REACT_TEXT,
+            content: vdom
+        }
+    }
+    let { type, props, content, ref } = vdom
+    let dom 
+   //判断$$typeofs是REACT_PROVIDER和 REACT_CONTEXT
+    if (type &amp;&amp; type.$$typeofs == REACT_PROVIDER) {
+        return mountProverComponent(vdom)
+    } else if (type &amp;&amp; type.$$typeofs == REACT_CONTEXT) {
+        return mountContextComponent(vdom)
+    } else if (type &amp;&amp; type.$$typeofs == REACT_FORWARDREF) {
+        return mountForWardRef(vdom)
+    } else if (type == REACT_TEXT) { 
+        dom = document.createTextNode(content)
+    } else if (typeof type == &#39;function&#39;) { 
+        if (type.isReactComponent) { 
+            return mountClassComponent(vdom)
+        }
+        return mountFunctionComponent(vdom)
+    } else { //元素
+        dom = document.createElement(type) 
+    }
+    if (props) { 
+        updatePropos(dom, {}, props) 
+        //3 children
+        let children = props.children
+        if (children) {
+            changeChildren(children, dom, props)
+        }
+    }
+    vdom.dom = dom //保存真实dom
+    if (ref) ref.current = dom
+    return dom
+}
+
+🧲//处理provider组件
+function mountProverComponent(vdom) {
+    //  console.log(vdom) //{}
+    let { type, props } = vdom //type =&gt; Provider{$$typeofs: Symbol(REACT_PROVIDER), _context: {…}}
+
+    //获取数据赋值
+    let context = type._context  //給context =&gt;React.creatContext()
+    context._currentValue = props.value//赋值 {color:red}
+    //渲染 元素propsc.children
+    let renderVdom = props.children
+    // if(!renderVdom) return null
+    //
+    vdom.oldReaderVnode = renderVdom //后面用来更新
+    return crateDom(renderVdom)
+
+}
+🧲//处理context组件
+function mountContextComponent(vdom) {
+    let { type, props } = vdom //type =&gt; Provider{$$typeofs: Symbol(REACT_PROVIDER), _context: {…}}
+    //获取数据
+    let context = type._context  //給context =&gt;React.creatContext()
+    //渲染 元素propsc.children
+    let renderVdom = props.children(context._currentValue)
+    //
+
+    vdom.oldReaderVnode = renderVdom //后面用来更新
+    // if(!renderVdom) return null
+    return crateDom(renderVdom)
+}
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="🎯react-router源码" tabindex="-1"><a class="header-anchor" href="#🎯react-router源码" aria-hidden="true">#</a> 🎯react-router源码</h2><h3 id="hash和history路由模式的实现原理" tabindex="-1"><a class="header-anchor" href="#hash和history路由模式的实现原理" aria-hidden="true">#</a> Hash和History路由模式的实现原理</h3><blockquote><p><strong>Hash模式：利用hash实现路由切换</strong></p></blockquote><p>路径前带 <code>#</code>就是Hash模式，当 路由地址发生改变，就会触发hashchange，就可以得到当前的路径，就可以渲染对应地址的组件</p><p>本质上是改变window.location的href属性；</p><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>   // 监听URL的改变
+    window.addEventListener(&quot;hashchange&quot;, () =&gt; {
+      switch (location.hash) {
+        case &quot;#/home&quot;:
+          routerViewEl.innerHTML = &quot;首页&quot;;
+          break;
+        case &quot;#/about&quot;:
+          routerViewEl.innerHTML = &quot;关于&quot;;
+          break;
+        default:
+          routerViewEl.innerHTML = &quot;&quot;;
+      }
+    })
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot; /&gt;
+    &lt;link rel=&quot;icon&quot; type=&quot;image/svg+xml&quot; href=&quot;src/favicon.svg&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;Vite App&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
+    &lt;div&gt;
+      &lt;a href=&quot;#/a&quot;&gt;a&lt;/a&gt;
+      &lt;a href=&quot;#/b&quot;&gt;b&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;script&gt;
+      window.addEventListener(&#39;hashchange&#39;, () =&gt; {
+        console.log(window.location.hash);
+        let pathname = window.location.hash.slice(1);
+        root.innerHTML = pathname;
+      });
+    &lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><blockquote><p><strong>history模式：利用h5 Api实现路由切换</strong></p><p><strong>包括两个方法：history.pushState和history.replaceState</strong></p><p><strong>一个事件：window.onpopstate</strong></p></blockquote><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>&lt;div onclick=&#39;pushStateA()&#39;&gt;A&lt;/div&gt;
+&lt;div onclick=&#39;pushStateB()&#39;&gt;B&lt;/div&gt;
+&lt;div onclick=&#39;pushStateC()&#39;&gt;C&lt;/div&gt;
+
+function pushStateA() {
+    history.pushState({ name: &#39;悟空&#39; }, null, &#39;/a&#39;)
+}
+function pushStateB() {
+    history.pushState({ name: &#39;悟空&#39; }, null, &#39;/b&#39;)
+}
+function pushStateC() {
+    history.pushState({ name: &#39;悟空&#39; }, null, &#39;/c&#39;)
+}
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>&lt;div onclick=&#39;replace()&#39;&gt;/b&lt;/div&gt;
+
+function replace() {
+history.replaceState({ name: &#39;悟空&#39; }, null, &#39;/b&#39;)
+ }
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>  window.addEventListener(&#39;popstate&#39;,(event)=&gt;{
+       console.log(event)
+       //获取到路径
+       let pathname = window.location.pathname//获取到路径
+       //
+       root.innerHTML =  pathname
+  })
+
+ function forward() {
+     history.forward()//前进
+ }
+ function  back() {
+     history.back()//后退
+ }
+ function  go(step) {
+     history. go(step)//可进可退+1 -1
+ }
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>自带的popstate事件可以监听forward，back，go但是不能监听pushState，因为需要手动劫持</p><div class="language-text line-numbers-mode" data-ext="text"><pre class="language-text"><code>       //解放方法：函数劫持
+        (function(history){
+          let oldPushState = history.pushState;//旧的
+
+          history.pushState = function(state,title,pathname){
+                let result = oldPushState.apply(history,arguments) //调用旧的  =》 /a
+
+                //添加一个属性
+                if(typeof window.onpopstate ==&#39;function&#39;){
+                    window.onpopstate(new CustomEvent(&#39;popstate&#39;,{detail:{pathname,state}}))
+                }
+          }
+        })(history)
+     
+        //使用
+        window.onpopstate = (event)=&gt;{
+              console.log(666)
+              root.innerHTML = window.location.pathname
+        }
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div></div><!--[--><!----><!--]--><footer class="page-meta"><!----><div class="meta-item git-info"><div class="update-time"><span class="label">上次编辑于: </span><!----></div><div class="contributors"><span class="label">贡献者: </span><!--[--><!--[--><span class="contributor" title="email: 290225941@qq.com">along-H</span><!--]--><!--]--></div></div></footer><nav class="vp-page-nav"><!----><a aria-label="🎯React Hooks源码" class="vp-link nav-link next nav-link next" href="/my-blob/posts/react/sourceCode/hooks.html"><div class="hint">下一页<span class="arrow end"></span></div><div class="link">🎯React Hooks源码<!----></div></a></nav><div id="comment" class="giscus-wrapper input-top" style="display:block;"><div class="loading-icon-wrapper" style="display:flex;align-items:center;justify-content:center;height:96px"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" preserveAspectRatio="xMidYMid" viewBox="25 25 50 50"><animateTransform attributeName="transform" type="rotate" dur="2s" keyTimes="0;1" repeatCount="indefinite" values="0;360"></animateTransform><circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><animate attributeName="stroke-dasharray" dur="1.5s" keyTimes="0;0.5;1" repeatCount="indefinite" values="1,200;90,200;1,200"></animate><animate attributeName="stroke-dashoffset" dur="1.5s" keyTimes="0;0.5;1" repeatCount="indefinite" values="0;-35px;-125px"></animate></circle></svg></div></div><!--[--><!----><!--]--><!--]--></main><!--]--><footer class="vp-footer-wrapper"><div class="vp-footer">vuepress-theme-hope</div><div class="vp-copyright">Copyright © 2025 Along </div></footer></div><!--]--><!----><!--]--></div>
+    <script type="module" src="/my-blob/assets/app-CaxZhZIt.js" defer></script>
+  </body>
+</html>
